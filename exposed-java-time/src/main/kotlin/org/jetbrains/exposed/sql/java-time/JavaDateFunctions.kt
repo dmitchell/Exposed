@@ -16,6 +16,7 @@ class CurrentDateTime : Function<LocalDateTime>(JavaLocalDateTimeColumnType.INST
     override fun toQueryBuilder(queryBuilder: QueryBuilder) = queryBuilder {
         +when {
             (currentDialect as? MysqlDialect)?.isFractionDateTimeSupported() == true -> "CURRENT_TIMESTAMP(6)"
+            currentDialect is SnowflakeDialect -> "CURRENT_TIMESTAMP()"
             else -> "CURRENT_TIMESTAMP"
         }
     }
@@ -25,6 +26,7 @@ class CurrentTimestamp<T: Temporal> : Expression<T>() {
     override fun toQueryBuilder(queryBuilder: QueryBuilder) = queryBuilder {
         +when {
             (currentDialect as? MysqlDialect)?.isFractionDateTimeSupported() == true -> "CURRENT_TIMESTAMP(6)"
+            currentDialect is SnowflakeDialect -> "CURRENT_TIMESTAMP()"
             else -> "CURRENT_TIMESTAMP"
         }
     }

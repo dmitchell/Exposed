@@ -33,6 +33,7 @@ dependencies {
         "mysql8" ->     testImplementation("mysql", "mysql-connector-java", Versions.mysql80)
         "oracle" ->     testImplementation("com.oracle.database.jdbc", "ojdbc8", Versions.oracle12)
         "sqlserver" ->  testImplementation("com.microsoft.sqlserver", "mssql-jdbc", Versions.sqlserver)
+        "snowflake" ->  implementation("net.snowflake", "snowflake-jdbc", Versions.snowflake)
         else -> {
             testImplementation("com.h2database", "h2", Versions.h2)
             testImplementation("mysql", "mysql-connector-java", Versions.mysql51)

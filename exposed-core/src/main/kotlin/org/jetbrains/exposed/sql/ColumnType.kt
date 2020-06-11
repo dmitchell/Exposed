@@ -6,6 +6,7 @@ import org.jetbrains.exposed.dao.id.IdTable
 import org.jetbrains.exposed.sql.statements.DefaultValueMarker
 import org.jetbrains.exposed.sql.statements.api.ExposedBlob
 import org.jetbrains.exposed.sql.statements.api.PreparedStatementApi
+import org.jetbrains.exposed.sql.vendors.SnowflakeDialect
 import org.jetbrains.exposed.sql.vendors.currentDialect
 import java.io.InputStream
 import java.math.BigDecimal

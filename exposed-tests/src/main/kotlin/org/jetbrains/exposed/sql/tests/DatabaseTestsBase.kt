@@ -69,7 +69,18 @@ enum class TestDB(val connection: () -> String, val driver: String, val user: St
 
     MARIADB({"jdbc:mariadb://${System.getProperty("exposed.test.mariadb.host", "192.168.99.100")}" +
             ":${System.getProperty("exposed.test.mariadb.port", "3306")}/testdb"},
-            "org.mariadb.jdbc.Driver");
+            "org.mariadb.jdbc.Driver"),
+
+    SNOWFLAKE({
+        "jdbc:snowflake://${System.getProperty("exposed.test.snowflake.account", System.getenv("SNOWFLAKE_ACCOUNT"))}.snowflakecomputing.com" +
+                "/?warehouse=${System.getProperty("exposed.test.snowflake.warehouse", System.getenv("SNOWFLAKE_WAREHOUSE"))}" +
+                "&db=${System.getProperty("exposed.test.snowflake.database", System.getenv("SNOWFLAKE_DATABASE") ?: "snowflake")}" +
+                "&schema=${System.getProperty("exposed.test.snowflake.schema", System.getenv("SNOWFLAKE_SCHEMA") ?: "test")}" +
+                "&role=${System.getProperty("exposed.test.snowflake.role", System.getenv("SNOWFLAKE_ROLE") ?: "public")}"
+    },
+            "net.snowflake.client.jdbc.SnowflakeDriver",
+            user = System.getProperty("exposed.test.snowflake.user", System.getenv("SNOWFLAKE_USER") ?: "test"),
+            pass = System.getProperty("exposed.test.snowflake.password", System.getenv("SNOWFLAKE_PASSWORD") ?: ""));
 
     fun connect() = Database.connect(connection(), user = user, password = pass, driver = driver)
 

@@ -20,6 +20,7 @@ import org.jetbrains.exposed.sql.tests.shared.expectException
 import org.jetbrains.exposed.sql.vendors.MysqlDialect
 import org.jetbrains.exposed.sql.vendors.OracleDialect
 import org.jetbrains.exposed.sql.vendors.SQLServerDialect
+import org.jetbrains.exposed.sql.vendors.SnowflakeDialect
 import org.junit.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -147,6 +148,7 @@ class DefaultsTest : DatabaseTestsBase() {
                     is OracleDialect -> "SYSDATE"
                     is SQLServerDialect -> "GETDATE()"
                     is MysqlDialect -> if (dialect.isFractionDateTimeSupported()) "NOW(6)" else "NOW()"
+                    is SnowflakeDialect -> "CURRENT_TIMESTAMP()"
                     else -> "NOW()"
                 }
             }

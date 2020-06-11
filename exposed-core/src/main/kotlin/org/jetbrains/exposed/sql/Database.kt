@@ -70,6 +70,7 @@ class Database private constructor(private val resolvedVendor: String? = null, v
             registerDialect(OracleDialect.dialectName) { OracleDialect() }
             registerDialect(SQLServerDialect.dialectName) { SQLServerDialect() }
             registerDialect(MariaDBDialect.dialectName) { MariaDBDialect() }
+            registerDialect(SnowflakeDialect.dialectName) { SnowflakeDialect() }
         }
 
         fun registerDialect(prefix:String, dialect: () -> DatabaseDialect) {
@@ -126,6 +127,7 @@ class Database private constructor(private val resolvedVendor: String? = null, v
             when(db.vendor) {
                 SQLiteDialect.dialectName -> Connection.TRANSACTION_SERIALIZABLE
                 OracleDialect.dialectName -> Connection.TRANSACTION_READ_COMMITTED
+                SnowflakeDialect.dialectName -> Connection.TRANSACTION_READ_COMMITTED
                 else -> DEFAULT_ISOLATION_LEVEL
             }
 
@@ -138,6 +140,7 @@ class Database private constructor(private val resolvedVendor: String? = null, v
             url.startsWith("jdbc:oracle") -> "oracle.jdbc.OracleDriver"
             url.startsWith("jdbc:sqlite") -> "org.sqlite.JDBC"
             url.startsWith("jdbc:sqlserver") -> "com.microsoft.sqlserver.jdbc.SQLServerDriver"
+            url.startsWith("jdbc:snowflake") -> "net.snowflake.client.jdbc.SnowflakeDriver"
             else -> error("Database driver not found for $url")
         }
 
@@ -150,6 +153,7 @@ class Database private constructor(private val resolvedVendor: String? = null, v
             url.startsWith("jdbc:oracle") -> OracleDialect.dialectName
             url.startsWith("jdbc:sqlite") -> SQLiteDialect.dialectName
             url.startsWith("jdbc:sqlserver") -> SQLServerDialect.dialectName
+            url.startsWith("jdbc:snowflake") -> SnowflakeDialect.dialectName
             else -> error("Can't resolve dialect for connection: $url")
         }
     }

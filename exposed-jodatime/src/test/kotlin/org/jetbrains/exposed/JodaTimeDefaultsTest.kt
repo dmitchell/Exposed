@@ -19,10 +19,7 @@ import org.jetbrains.exposed.sql.tests.shared.assertEqualCollections
 import org.jetbrains.exposed.sql.tests.shared.assertEqualLists
 import org.jetbrains.exposed.sql.tests.shared.assertEquals
 import org.jetbrains.exposed.sql.tests.shared.expectException
-import org.jetbrains.exposed.sql.vendors.MysqlDialect
-import org.jetbrains.exposed.sql.vendors.OracleDialect
-import org.jetbrains.exposed.sql.vendors.SQLServerDialect
-import org.jetbrains.exposed.sql.vendors.currentDialect
+import org.jetbrains.exposed.sql.vendors.*
 import org.joda.time.DateTime
 import org.joda.time.DateTimeZone
 import org.junit.Test
@@ -138,6 +135,7 @@ class JodaTimeDefaultsTest : JodaTimeBaseTest() {
                     is OracleDialect -> "SYSDATE"
                     is SQLServerDialect -> "GETDATE()"
                     is MysqlDialect -> if (dialect.isFractionDateTimeSupported()) "NOW(6)" else "NOW()"
+                    is SnowflakeDialect -> "CURRENT_TIMESTAMP()"
                     else -> "NOW()"
                 }
             }
