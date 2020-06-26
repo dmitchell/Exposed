@@ -189,6 +189,12 @@ class ByteColumnType : ColumnType() {
         is String -> value.toByte()
         else -> error("Unexpected value of type Byte: $value of ${value::class.qualifiedName}")
     }
+
+    override fun notNullValueToDB(value: Any): Any = when {
+        // current bug in jdbc.snowflake forgot byte (@see https://github.com/snowflakedb/snowflake-jdbc/pull/271)
+        ((value is Byte) and (currentDialect is SnowflakeDialect)) -> super.notNullValueToDB((value as Byte).toShort())
+        else -> super.notNullValueToDB(value)
+    }
 }
 
 /**
