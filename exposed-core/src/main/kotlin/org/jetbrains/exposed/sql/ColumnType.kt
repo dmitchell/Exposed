@@ -714,3 +714,4 @@ class EnumerationNameColumnType<T : Enum<T>>(
  * Marker interface for date/datetime related column types.
  **/
 interface IDateColumnType
+interface IDateTimeColumnType: IDateColumnType

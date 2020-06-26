@@ -1,18 +1,19 @@
 package org.jetbrains.exposed.sql.`java-time`
 
-import org.jetbrains.exposed.sql.Column
-import org.jetbrains.exposed.sql.ColumnType
-import org.jetbrains.exposed.sql.IDateColumnType
-import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.vendors.SQLiteDialect
+import org.jetbrains.exposed.sql.vendors.SnowflakeDialect
 import org.jetbrains.exposed.sql.vendors.currentDialect
 import java.sql.ResultSet
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
+import java.time.chrono.IsoChronology
 import java.time.format.DateTimeFormatter
-import java.util.Locale
+import java.time.format.DateTimeFormatterBuilder
+import java.time.format.ResolverStyle
+import java.util.*
 
 private val DEFAULT_DATE_STRING_FORMATTER by lazy { DateTimeFormatter.ISO_LOCAL_DATE.withLocale(Locale.ROOT).withZone(ZoneId.systemDefault()) }
 private val DEFAULT_DATE_TIME_STRING_FORMATTER by lazy { DateTimeFormatter.ISO_LOCAL_DATE_TIME.withLocale(Locale.ROOT).withZone(ZoneId.systemDefault()) }
@@ -67,7 +68,7 @@ class JavaLocalDateColumnType : ColumnType(), IDateColumnType {
     }
 }
 
-class JavaLocalDateTimeColumnType : ColumnType(), IDateColumnType {
+class JavaLocalDateTimeColumnType : ColumnType(), IDateTimeColumnType {
     override fun sqlType(): String  = currentDialect.dataTypeProvider.dateTimeType()
 
     override fun nonNullValueToString(value: Any): String {
@@ -107,7 +108,7 @@ class JavaLocalDateTimeColumnType : ColumnType(), IDateColumnType {
     }
 }
 
-class JavaInstantColumnType : ColumnType(), IDateColumnType {
+class JavaInstantColumnType : ColumnType(), IDateTimeColumnType {
     override fun sqlType(): String  = currentDialect.dataTypeProvider.dateTimeType()
 
     override fun nonNullValueToString(value: Any): String {
@@ -118,7 +119,10 @@ class JavaInstantColumnType : ColumnType(), IDateColumnType {
             else -> error("Unexpected value: $value of ${value::class.qualifiedName}")
         }
 
-        return "'${DEFAULT_DATE_TIME_STRING_FORMATTER.format(instant)}'"
+        return if (currentDialect is SQLiteDialect)
+            "'${SQLITE_DATE_TIME_STRING_FORMATTER.format(instant)}'"
+        else
+            "'${DEFAULT_DATE_TIME_STRING_FORMATTER.format(instant)}'"
     }
 
     override fun valueFromDB(value: Any): Instant = when(value) {

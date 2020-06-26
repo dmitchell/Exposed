@@ -42,6 +42,12 @@ internal object SnowflakeDataTypeProvider : DataTypeProvider() {
 
     override fun integerAutoincType(): String = "INT AUTOINCREMENT"
     override fun longAutoincType(): String = "INT AUTOINCREMENT"
+
+    override fun processForDefaultValue(e: Expression<*>): String = when {
+        e is LiteralOp<*> && (e.columnType is IDateColumnType) -> "to_date(${super.processForDefaultValue(e)})"
+        e is LiteralOp<*> && (e.columnType is IDateTimeColumnType) -> "to_timestamp(${super.processForDefaultValue(e)})"
+        else -> super.processForDefaultValue(e)
+    }
 }
 
 /**
