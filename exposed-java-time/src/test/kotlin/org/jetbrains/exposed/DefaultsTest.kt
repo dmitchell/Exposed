@@ -17,10 +17,7 @@ import org.jetbrains.exposed.sql.tests.shared.assertEqualCollections
 import org.jetbrains.exposed.sql.tests.shared.assertEqualLists
 import org.jetbrains.exposed.sql.tests.shared.assertEquals
 import org.jetbrains.exposed.sql.tests.shared.expectException
-import org.jetbrains.exposed.sql.vendors.MysqlDialect
-import org.jetbrains.exposed.sql.vendors.OracleDialect
-import org.jetbrains.exposed.sql.vendors.SQLServerDialect
-import org.jetbrains.exposed.sql.vendors.SnowflakeDialect
+import org.jetbrains.exposed.sql.vendors.*
 import org.junit.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -180,9 +177,12 @@ class DefaultsTest : DatabaseTestsBase() {
         withTables(listOf(TestDB.SQLITE), TestTable) {
             val dtType = currentDialectTest.dataTypeProvider.dateTimeType()
             val q = db.identifierManager.quoteString
+            // snowflake wraps the table name in double quotes
+            val tableName = if (currentDialect is SnowflakeDialect) "\"${"t".inProperCase()}\"" else "${"t".inProperCase()}"
+
             val baseExpression = "CREATE TABLE " + addIfNotExistsIfSupported() +
-                    "${"t".inProperCase()} (" +
-                    "${"id".inProperCase()} ${currentDialectTest.dataTypeProvider.integerAutoincType()} PRIMARY KEY, " +
+                    "${tableName} " +
+                    "(${"id".inProperCase()} ${currentDialectTest.dataTypeProvider.integerAutoincType()} PRIMARY KEY, " +
                     "${"s".inProperCase()} VARCHAR(100) DEFAULT 'test' NOT NULL, " +
                     "${"sn".inProperCase()} VARCHAR(100) DEFAULT 'testNullable' NULL, " +
                     "${"l".inProperCase()} ${currentDialectTest.dataTypeProvider.longType()} DEFAULT 42 NOT NULL, " +

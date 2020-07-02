@@ -38,7 +38,7 @@ internal object SnowflakeDataTypeProvider : DataTypeProvider() {
         return value.toString()
     }
 
-    override fun dateTimeType(): String = "TIMESTAMP_NTZ"
+    override fun dateTimeType(): String = "TIMESTAMP_TZ"
 
     override fun integerAutoincType(): String = "INT AUTOINCREMENT"
     override fun longAutoincType(): String = "INT AUTOINCREMENT"
