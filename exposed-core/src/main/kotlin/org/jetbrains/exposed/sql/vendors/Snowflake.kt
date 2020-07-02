@@ -38,7 +38,7 @@ internal object SnowflakeDataTypeProvider : DataTypeProvider() {
         return value.toString()
     }
 
-    override fun dateTimeType(): String = "TIMESTAMP_LTZ"
+    override fun dateTimeType(): String = "TIMESTAMP_NTZ"
 
     override fun integerAutoincType(): String = "INT AUTOINCREMENT"
     override fun longAutoincType(): String = "INT AUTOINCREMENT"
@@ -98,10 +98,6 @@ internal object SnowflakeFunctionProvider : FunctionProvider() {
 
 open class SnowflakeDialect : VendorDialect(dialectName, SnowflakeDataTypeProvider, SnowflakeFunctionProvider) {
     override val defaultReferenceOption = ReferenceOption.NO_ACTION
-
-    /* TODO temporary disable schema creation */
-    override val supportsCreateSchema: Boolean
-        get() = false
 
     companion object {
         const val dialectName: String = "snowflake"

@@ -77,7 +77,7 @@ enum class TestDB(val connection: () -> String, val driver: String, val user: St
                 "&db=${System.getProperty("exposed.test.snowflake.database", System.getenv("SNOWFLAKE_DATABASE") ?: "snowflake")}" +
                 "&schema=${System.getProperty("exposed.test.snowflake.schema", System.getenv("SNOWFLAKE_SCHEMA") ?: "test")}" +
                 "&role=${System.getProperty("exposed.test.snowflake.role", System.getenv("SNOWFLAKE_ROLE") ?: "public")}" +
-                "&tracing=ALL"
+                "&tracing=INFO"
     },
             "net.snowflake.client.jdbc.SnowflakeDriver",
             user = System.getProperty("exposed.test.snowflake.user", System.getenv("SNOWFLAKE_USER") ?: "test"),

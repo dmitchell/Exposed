@@ -3,6 +3,7 @@ package org.jetbrains.exposed.sql.statements
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.api.PreparedStatementApi
 import org.jetbrains.exposed.sql.vendors.PostgreSQLDialect
+import org.jetbrains.exposed.sql.vendors.SnowflakeDialect
 import org.jetbrains.exposed.sql.vendors.currentDialect
 import org.jetbrains.exposed.sql.vendors.inProperCase
 import java.sql.ResultSet
@@ -136,7 +137,7 @@ open class InsertStatement<Key:Any>(val table: Table, val isIgnore: Boolean = fa
         autoIncColumns.isNotEmpty() && currentDialect is PostgreSQLDialect ->
             transaction.connection.prepareStatement(sql, true)
 
-        autoIncColumns.isNotEmpty() ->
+        autoIncColumns.isNotEmpty() && currentDialect !is SnowflakeDialect ->
             // http://viralpatel.net/blogs/oracle-java-jdbc-get-primary-key-insert-sql/
             transaction.connection.prepareStatement(sql, autoIncColumns.map { it.name.inProperCase() }.toTypedArray())
 
