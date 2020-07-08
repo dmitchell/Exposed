@@ -2,12 +2,10 @@ package org.jetbrains.exposed.sql
 
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IdTable
+import org.jetbrains.exposed.exceptions.UnsupportedByDialectException
 import org.jetbrains.exposed.sql.statements.*
 import org.jetbrains.exposed.sql.transactions.TransactionManager
-import org.jetbrains.exposed.sql.vendors.MysqlDialect
-import org.jetbrains.exposed.sql.vendors.SQLServerDialect
-import org.jetbrains.exposed.sql.vendors.currentDialect
-import org.jetbrains.exposed.sql.vendors.inProperCase
+import org.jetbrains.exposed.sql.vendors.*
 import java.util.*
 
 /**
@@ -76,12 +74,18 @@ fun <T:Table> T.insert(body: T.(InsertStatement<Number>)->Unit): InsertStatement
 /**
  * @sample org.jetbrains.exposed.sql.tests.shared.DMLTests.testGeneratedKey03
  */
-fun <Key:Comparable<Key>, T: IdTable<Key>> T.insertAndGetId(body: T.(InsertStatement<EntityID<Key>>)->Unit) =
-    InsertStatement<EntityID<Key>>(this, false).run {
+fun <Key:Comparable<Key>, T: IdTable<Key>> T.insertAndGetId(body: T.(InsertStatement<EntityID<Key>>)->Unit): EntityID<Key> {
+    // Snowflake is bulk data oriented rather than oltp oriented. It prefers bulk data import and
+    // returns nothing useful on insert. However, someone could replace autoinc w client assigned
+    // ids (e.g., from a sequence)
+    if (currentDialect is SnowflakeDialect) throw UnsupportedByDialectException("Snowflake does not support indexes", currentDialect);
+
+    return InsertStatement<EntityID<Key>>(this, false).run {
         body(this)
         execute(TransactionManager.current())
         get(id)
     }
+}
 
 /**
  * @sample org.jetbrains.exposed.sql.tests.shared.DMLTests.testBatchInsert01

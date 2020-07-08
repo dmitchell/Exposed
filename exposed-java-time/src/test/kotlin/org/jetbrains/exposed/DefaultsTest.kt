@@ -6,6 +6,7 @@ import org.jetbrains.exposed.dao.flushCache
 import org.jetbrains.exposed.dao.id.EntityID
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.`java-time`.*
 import org.jetbrains.exposed.sql.statements.BatchDataInconsistentException
 import org.jetbrains.exposed.sql.statements.BatchInsertStatement
@@ -18,6 +19,7 @@ import org.jetbrains.exposed.sql.tests.shared.assertEqualLists
 import org.jetbrains.exposed.sql.tests.shared.assertEquals
 import org.jetbrains.exposed.sql.tests.shared.expectException
 import org.jetbrains.exposed.sql.vendors.*
+import org.junit.Assume
 import org.junit.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -202,9 +204,13 @@ class DefaultsTest : DatabaseTestsBase() {
 
             assertEqualLists(expected, TestTable.ddl)
 
-            val id1 = TestTable.insertAndGetId {  }
-
-            val row1 = TestTable.select { TestTable.id eq id1 }.single()
+            val row1 = if (currentDialect is SnowflakeDialect) {
+                TestTable.insert {  }
+                TestTable.selectAll().limit(1).orderBy( TestTable.id, SortOrder.DESC ).single()
+            } else {
+                val id1 = TestTable.insertAndGetId { }
+                TestTable.select { TestTable.id eq id1 }.single()
+            }
             assertEquals("test", row1[TestTable.s])
             assertEquals("testNullable", row1[TestTable.sn])
             assertEquals(42, row1[TestTable.l])
@@ -218,6 +224,7 @@ class DefaultsTest : DatabaseTestsBase() {
 
     @Test
     fun testDefaultExpressions01() {
+        Assume.assumeFalse(currentDialect is SnowflakeDialect)
 
         fun abs(value: Int) = object : ExpressionWithColumnType<Int>() {
             override fun toQueryBuilder(queryBuilder: QueryBuilder) = queryBuilder { append("ABS($value)") }
@@ -232,10 +239,15 @@ class DefaultsTest : DatabaseTestsBase() {
         }
 
         withTables(foo) {
-            val id = foo.insertAndGetId {
-                it[foo.name] = "bar"
+            val result = if (currentDialect is SnowflakeDialect) {
+                foo.insert {  it[foo.name] = "bar" }
+                foo.selectAll().limit(1).orderBy( foo.id, SortOrder.DESC ).single()
+            } else {
+                val id = foo.insertAndGetId {
+                    it[foo.name] = "bar"
+                }
+                foo.select { foo.id eq id }.single()
             }
-            val result = foo.select { foo.id eq id }.single()
 
             assertEquals(today, result[foo.defaultDateTime].toLocalDate())
             assertEquals(100, result[foo.defaultInt])
@@ -244,6 +256,8 @@ class DefaultsTest : DatabaseTestsBase() {
 
     @Test
     fun testDefaultExpressions02() {
+        Assume.assumeFalse(currentDialect is SnowflakeDialect)
+
         val foo = object : IntIdTable("foo") {
             val name = text("name")
             val defaultDateTime = datetime("defaultDateTime").defaultExpression(CurrentTimestamp())
@@ -252,21 +266,28 @@ class DefaultsTest : DatabaseTestsBase() {
         val nonDefaultDate = LocalDate.of(2000, 1, 1).atStartOfDay()
 
         withTables(foo) {
-            val id = foo.insertAndGetId {
-                it[foo.name] = "bar"
-                it[foo.defaultDateTime] = nonDefaultDate
+            val result = if (currentDialect is SnowflakeDialect) {
+                foo.insert {
+                    it[foo.name] = "bar"
+                    it[foo.defaultDateTime] = nonDefaultDate
+                }
+                foo.selectAll().limit(1).orderBy( foo.id, SortOrder.DESC ).single()
+            } else {
+                val id = foo.insertAndGetId {
+                    it[foo.name] = "bar"
+                    it[foo.defaultDateTime] = nonDefaultDate
+                }
+                foo.select { foo.id eq id }.single()
             }
-
-            val result = foo.select { foo.id eq id }.single()
 
             assertEquals("bar", result[foo.name])
             assertEqualDateTime(nonDefaultDate, result[foo.defaultDateTime])
 
-            foo.update({foo.id eq id}) {
+            foo.update({foo.id eq foo.id}) {
                 it[foo.name] = "baz"
             }
 
-            val result2 = foo.select { foo.id eq id }.single()
+            val result2 = foo.select { foo.id eq foo.id }.single()
             assertEquals("baz", result2[foo.name])
             assertEqualDateTime(nonDefaultDate, result2[foo.defaultDateTime])
         }
